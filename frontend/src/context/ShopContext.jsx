@@ -153,7 +153,7 @@ const getUserCart = async(token)=>{
     setToken,
     token,
     setCartItems,
-    getCartCount
+
   };
 
   return (

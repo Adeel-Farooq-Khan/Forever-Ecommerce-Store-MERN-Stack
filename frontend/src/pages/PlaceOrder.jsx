@@ -21,6 +21,7 @@ const PlaceOrder = () => {
     getCartCount,
     getCartAmount,
   } = useContext(ShopContext);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -36,14 +37,13 @@ const PlaceOrder = () => {
   const onChangeHandler = (event) => {
     const name = event.target.name;
     const value = event.target.value;
-
     setFormData((data) => ({ ...data, [name]: value }));
   };
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
     try {
-      let ordrItems = [];
+      let orderItems = [];
       for (const items in cartItems) {
         for (const item in cartItems[items]) {
           if (cartItems[items][item] > 0) {
@@ -53,18 +53,20 @@ const PlaceOrder = () => {
             if (itemInfo) {
               itemInfo.size = item;
               itemInfo.quantity = cartItems[items][item];
-              ordrItems.push(itemInfo);
+              orderItems.push(itemInfo);
             }
           }
         }
       }
+
+      // Fixed: Changed 'item' to 'items' to match backend expectation
       let orderData = {
         address: formData,
-        item: ordrItems,
+        items: orderItems, // Changed from 'item' to 'items'
         amount: getCartAmount() + delivery_fee,
       };
+
       switch (method) {
-        // api call for cash on delivey ordr
         case "cod":
           const response = await axios.post(
             backendUrl + "/api/order/place",
@@ -74,12 +76,34 @@ const PlaceOrder = () => {
 
           if (response.data.success) {
             setCartItems({});
-
             navigate("/orders");
+            toast.success("Order placed successfully!");
           } else {
             toast.error(response.data.message);
           }
           break;
+
+       case "stripe":
+  try {
+    const responseStripe = await axios.post(
+      backendUrl + "/api/order/stripe",
+      orderData,
+      { headers: { token } }
+    );
+    
+    if (responseStripe.data.success) {
+      const { session_url } = responseStripe.data;
+      
+      window.location.href = session_url; 
+   
+    } else {
+      toast.error(responseStripe.data.message);
+    }
+  } catch (error) {
+    console.error("Stripe payment error:", error);
+    toast.error("Failed to initiate Stripe payment");
+  }
+  break;
 
         default:
           break;
@@ -93,7 +117,7 @@ const PlaceOrder = () => {
   return (
     <form
       onSubmit={onSubmitHandler}
-      className="flex flex-col sm:flex-row justify-between gap=4 pt-5 sm:pt-14 min-h-[80vh] border-t"
+      className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t"
     >
       <div className="flex flex-col gap-4 w-full sm:max-w-[480px]">
         <div className="text-xl sm:text-2xl my-3">
@@ -188,10 +212,9 @@ const PlaceOrder = () => {
         />
       </div>
 
-      {/* Right side  */}
-
+      {/* Right side */}
       <div className="mt-8">
-        <div className="mt-8 min-w-89">
+        <div className="mt-8 min-w-80">
           <CartTotal />
         </div>
         <div className="mt-12">
