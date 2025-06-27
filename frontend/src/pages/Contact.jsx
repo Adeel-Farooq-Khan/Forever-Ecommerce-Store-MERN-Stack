@@ -1,4 +1,3 @@
-import React from "react";
 import Title from "../components/Title";
 import NewsLetterBox from "../components/NewsLetterBox";
 import { assets } from "../assets/assets";
