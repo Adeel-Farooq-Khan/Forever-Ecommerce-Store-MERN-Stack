@@ -16,6 +16,8 @@ const Contact = () => {
           src={assets.contact_img}
           alt="Contact Us Illustration"
         />
+
+        
         <section className="flex flex-col justify-center items-start gap-4">
           <p className="font-semibold text-gray-600">Our Store</p>
           <p className="text-gray-500">

@@ -1,5 +1,3 @@
-import React from "react";
-
 const NewsletterBox = () => {
   const onSubmitHnalder = (event) => {
     event.preventDefault();
